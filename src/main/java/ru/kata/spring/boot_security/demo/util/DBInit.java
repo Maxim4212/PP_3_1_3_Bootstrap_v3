@@ -6,6 +6,7 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +26,7 @@ public class DBInit {
     private void dataBaseInit() {
         Role roleAdmin = new Role("ADMIN");
         Role roleUser = new Role("USER");
+
         Set<Role> adminSet = new HashSet<>();
         Set<Role> userSet = new HashSet<>();
 
@@ -35,9 +37,9 @@ public class DBInit {
         adminSet.add(roleUser);
         userSet.add(roleUser);
 
-        User newUser = new User("Ivan", "Ivanov", 23, "ivan@mail.com", "User",
+        User newUser = new User("Nikolay", "Ivanov", 26, "ivanov@mail.com", "User",
                 "user", userSet);
-        User admin = new User("Garry", "Potter", 30, "garry@gmail.com", "admin",
+        User admin = new User("Ivan", "Nikolaev", 62, "nikolaev@gmail.com", "admin",
                 "admin", adminSet);
 
         userService.saveUser(newUser);
