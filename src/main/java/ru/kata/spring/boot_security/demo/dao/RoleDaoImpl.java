@@ -4,13 +4,12 @@ import ru.kata.spring.boot_security.demo.model.Role;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Repository
-@Transactional
 public class RoleDaoImpl implements RoleDao {
 
     @PersistenceContext
@@ -28,18 +27,28 @@ public class RoleDaoImpl implements RoleDao {
                     .setParameter("userRole", userRole)
                     .getSingleResult();
         } catch (NoResultException e) {
-            return null;
+            throw new EntityNotFoundException("Role with name '" + userRole + "' not found");
         }
     }
 
     @Override
     public Role getRoleById(Long id) {
-        return entityManager.find(Role.class, id);
+        Role role = entityManager.find(Role.class, id);
+        if (role == null) {
+            throw new EntityNotFoundException("Role with id " + id + " not found");
+        }
+        return role;
     }
 
     @Override
     public void addRole(Role role) {
+        try {
+            Role existingRole = getRole(role.getUserRole());
+            if (existingRole != null) {
+                throw new IllegalArgumentException("Role '" + role.getUserRole() + "' already exists");
+            }
+        } catch (EntityNotFoundException e) {
+        }
         entityManager.persist(role);
     }
-
 }

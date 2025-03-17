@@ -53,35 +53,66 @@
                                   th:action="@{/new}"
                                   th:object="${user}"
                                   method="POST">
+                                <div th:if="${#fields.hasErrors('name')}" class="alert alert-danger">
+                                    <ul>
+                                        <li th:each="err : ${#fields.errors('name')}" th:text="${err}"></li>
+                                    </ul>
+                                </div>
                                 <label for="name"><b>Name</b></label>
                                 <input th:name="name" th:type="text" class="form-control" id="name" required/>
                                 <br>
+
+                                <div th:if="${#fields.hasErrors('surname')}" class="alert alert-danger">
+                                    <ul>
+                                        <li th:each="err : ${#fields.errors('surname')}" th:text="${err}"></li>
+                                    </ul>
+                                </div>
                                 <label for="surname"><b>Surname</b></label>
                                 <input th:name="surname" th:type="text" class="form-control" id="surname" required/>
                                 <br>
+
+                                <div th:if="${#fields.hasErrors('age')}" class="alert alert-danger">
+                                    <ul>
+                                        <li th:each="err : ${#fields.errors('age')}" th:text="${err}"></li>
+                                    </ul>
+                                </div>
                                 <label for="age"><b>Age</b></label>
                                 <input th:name="age" th:type="number" class="form-control" id="age"/>
                                 <br>
+
+                                <div th:if="${#fields.hasErrors('email')}" class="alert alert-danger">
+                                    <ul>
+                                        <li th:each="err : ${#fields.errors('email')}" th:text="${err}"></li>
+                                    </ul>
+                                </div>
                                 <label for="email"><b>Email</b></label>
                                 <input th:name="email" th:type="text" class="form-control" id="email" required/>
                                 <br>
+
+                                <div th:if="${#fields.hasErrors('login')}" class="alert alert-danger">
+                                    <ul>
+                                        <li th:each="err : ${#fields.errors('login')}" th:text="${err}"></li>
+                                    </ul>
+                                </div>
                                 <label for="login"><b>Login</b></label>
                                 <input th:name="login" th:type="text" class="form-control" id="login" required/>
                                 <br>
+                                <div th:if="${#fields.hasErrors('password')}" class="alert alert-danger">
+                                    <ul>
+                                        <li th:each="err : ${#fields.errors('password')}" th:text="${err}"></li>
+                                    </ul>
+                                </div>
                                 <label for="password"><b>Password</b></label>
-                                <input th:name="password" th:field="*{password}" th:type="password" class="form-control"
-                                       id="password"/>
+                                <input th:name="password" th:field="*{password}" th:type="password" class="form-control" id="password"/>
                                 <br>
                                 <label for="roles"><b>Role</b></label>
                                 <select multiple class="form-control form-control-sm" id="roles" name="roles" size="2" required>
                                     <option th:each="role: ${roles}" th:value="${role.userRole}" th:selected="${user.roles.contains(role)}">
-                                        <th:block th:text="${role.userRole}">
-                                        </th:block>
+                                        <th:block th:text="${role.userRole}"></th:block>
                                     </option>
                                 </select>
                                 <br>
-                                <button th:type="submit" class="btn btn-success btn-lg" value="Add new user">Add new user
-                                </button>
+                                <button th:type="submit" class="btn btn-success btn-lg" value="Add new user">Add new user</button>
                             </form>
                         </div>
                     </div>

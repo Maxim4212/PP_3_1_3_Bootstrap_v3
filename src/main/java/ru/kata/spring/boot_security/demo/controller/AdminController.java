@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.controller;
 
+import org.springframework.validation.BindingResult;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.stream.Collectors;
+import javax.validation.Valid;
 
 @Controller
 @RequestMapping
@@ -45,16 +46,35 @@ public class AdminController {
     }
 
     @PostMapping("/new")
-    public String createUser(@ModelAttribute("user") User user) {
-        getUserRoles(user);
-        userService.saveUser(user);
-        return "redirect:/admin";
+    public String createUser(@Valid @ModelAttribute("user") User user,
+                             BindingResult bindingResult, Model model) {
+        try {
+            if (!userService.isLoginAvailable(user.getLogin())) {
+                bindingResult.rejectValue("login", "error.login", "Этот логин уже занят");
+            }
+
+            if (bindingResult.hasErrors()) {
+                model.addAttribute("roles", roleService.getAllRoles());
+                return "admin/newUser";
+            }
+            userService.saveUser(user);
+            return "redirect:/admin";
+
+        } catch (IllegalArgumentException e) {
+            bindingResult.rejectValue("login", "error.login", e.getMessage());
+            model.addAttribute("roles", roleService.getAllRoles());
+            return "admin/newUser";
+        }
     }
 
     @PutMapping("/{id}/update")
-    public String updateUser(@ModelAttribute("user") User user, Model model) {
+    public String updateUser(@Valid @ModelAttribute("user") User user,
+                             BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("roles", roleService.getAllRoles());
+            return "admin/newUser";
+        }
         model.addAttribute("roles", roleService.getAllRoles());
-        getUserRoles(user);
         userService.updateUser(user);
         return "redirect:/admin";
     }
@@ -63,11 +83,5 @@ public class AdminController {
     public String deleteUser(@PathVariable("id") long id) {
         userService.deleteUser(id);
         return "redirect:/admin";
-    }
-
-    private void getUserRoles(User user) {
-        user.setRoles(user.getRoles().stream()
-                .map(role -> roleService.getRole(role.getUserRole()))
-                .collect(Collectors.toSet()));
     }
 }

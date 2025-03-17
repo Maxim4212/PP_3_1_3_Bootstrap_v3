@@ -4,40 +4,57 @@ import ru.kata.spring.boot_security.demo.dao.UserDao;
 import ru.kata.spring.boot_security.demo.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-public class UserServiceImpl implements UserService, UserDetailsService {
+public class UserServiceImpl implements UserService {
     private final UserDao userDao;
+    private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
     @Lazy
-    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserDao userDao, RoleService roleService,
+                           PasswordEncoder passwordEncoder) {
         this.userDao = userDao;
+        this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
+
+    }
+
+    private void getUserRoles(User user) {
+        user.setRoles(user.getRoles().stream()
+                .map(role -> roleService.getRole(role.getUserRole()))
+                .collect(Collectors.toSet()));
     }
 
     @Override
     @Transactional
     public void saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        if (!userDao.isLoginAvailable(user.getUsername())) {
+            throw new IllegalArgumentException("Login '" + user.getLogin() + "' is already taken.");
+        }
+
+        getUserRoles(user);
         userDao.saveUser(user);
     }
 
     @Override
     @Transactional
     public void updateUser(User user) {
-        if (!user.getPassword().equals(userDao.getUserById(user.getId()).getPassword())) {
+        User existingUser = userDao.getUserById(user.getId());
+        if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
+
+        getUserRoles(user);
         userDao.updateUser(user);
     }
 
@@ -63,7 +80,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        return userDao.getUserByLogin(login);
+    public boolean isLoginAvailable(String login) {
+        return userDao.isLoginAvailable(login);
     }
 }

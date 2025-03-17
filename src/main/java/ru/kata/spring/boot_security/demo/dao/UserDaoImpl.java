@@ -1,15 +1,16 @@
 package ru.kata.spring.boot_security.demo.dao;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import ru.kata.spring.boot_security.demo.model.User;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Repository
-@Transactional
 public class UserDaoImpl implements UserDao {
 
     @PersistenceContext
@@ -22,12 +23,18 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public void updateUser(User user) {
+        if (entityManager.find(User.class, user.getId()) == null) {
+            throw new EntityNotFoundException("User with id " + user.getId() + " not found");
+        }
         entityManager.merge(user);
     }
 
     @Override
     public void deleteUser(long id) {
         User someUser = entityManager.find(User.class, id);
+        if (someUser == null) {
+            throw new EntityNotFoundException("User with id " + id + " not found");
+        }
         entityManager.remove(someUser);
     }
 
@@ -38,12 +45,31 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User getUserByLogin(String login) {
-        return entityManager.createQuery("select u from User u where u.login =: login", User.class)
-                .setParameter("login", login).getSingleResult();
+        try {
+            return entityManager.createQuery("SELECT u FROM User u WHERE u.login = :username", User.class)
+                    .setParameter("username", login)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            throw new UsernameNotFoundException("User with login '" + login + "' not found");
+        }
     }
 
     @Override
     public User getUserById(long id) {
-        return entityManager.find(User.class, id);
+        User user = entityManager.find(User.class, id);
+        if (user == null) {
+            throw new EntityNotFoundException("User with id " + id + " not found");
+        }
+        return user;
+    }
+
+    @Override
+    public boolean isLoginAvailable(String login) {
+        try {
+            getUserByLogin(login);
+            return false;
+        } catch (UsernameNotFoundException e) {
+            return true;
+        }
     }
 }

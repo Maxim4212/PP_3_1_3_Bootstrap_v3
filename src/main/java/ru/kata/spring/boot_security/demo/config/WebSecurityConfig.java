@@ -7,27 +7,29 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import ru.kata.spring.boot_security.demo.security.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    private final UserDetailsService userDetailsService;
     private final SuccessUserHandler successUserHandler;
 
+    private final UserDetailsServiceImpl userDetailsServiceImpl;
+
     @Autowired
-    public WebSecurityConfig(UserDetailsService userDetailsService, SuccessUserHandler successUserHandler) {
-        this.userDetailsService = userDetailsService;
+    public WebSecurityConfig(UserDetailsServiceImpl userDetailsServiceImpl,
+                             SuccessUserHandler successUserHandler) {
+        this.userDetailsServiceImpl = userDetailsServiceImpl;
         this.successUserHandler = successUserHandler;
     }
 
     @Override
     @Autowired
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+        auth.userDetailsService(userDetailsServiceImpl).passwordEncoder(passwordEncoder());
     }
 
     @Override

@@ -17,7 +17,12 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "users")
@@ -27,21 +32,32 @@ public class User implements UserDetails {
     @Column(name = "id")
     private Long id;
 
+    @NotNull(message = "Name cannot be null")
+    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
     @Column(name = "name")
     private String name;
 
+    @NotNull(message = "Surname cannot be null")
+    @Size(min = 2, max = 100, message = "Surname must be between 2 and 100 characters")
     @Column(name = "surname")
     private String surname;
 
+    @Min(value = 0, message = "Age must be a positive number")
     @Column(name = "age")
     private int age;
 
-    @Column(name = "email")
+    @NotNull(message = "Email cannot be null")
+    @Email(message = "Email must be valid")
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(name = "login")
+    @NotNull(message = "Login cannot be null")
+    @Size(min = 3, max = 50, message = "Login must be between 3 and 50 characters")
+    @Column(name = "login", /*unique = true, */nullable = false)
     private String login;
 
+    @NotNull(message = "Password cannot be null")
+    @Size(min = 4, message = "Password must be at least 4 characters long")
     @Column(name = "password")
     private String password;
 
@@ -168,5 +184,20 @@ public class User implements UserDetails {
                 ", age=" + age +
                 ", email='" + email + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) &&
+                Objects.equals(login, user.login) &&
+                Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, login, email);
     }
 }

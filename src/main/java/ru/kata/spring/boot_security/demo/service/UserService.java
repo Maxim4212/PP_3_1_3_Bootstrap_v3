@@ -16,4 +16,5 @@ public interface UserService {
     User getUserByLogin(String login);
 
     User getUserById(long id);
+    boolean isLoginAvailable(String login);
 }
